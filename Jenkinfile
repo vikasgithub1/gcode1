@@ -1,0 +1,80 @@
+/**
+ * Jenkins file for CI/CD pipeline
+ */
+
+@Library('common-shared-lib') _
+node("NEW-CD") {
+
+  timestamps {
+
+    defaultFromAddress = 'SFTA Pipeline <do-not-reply@freddiemac.com>'
+    //cleanup workspace
+    deleteDir()
+    //define collection object for audit data
+    auditMap = [:]
+    metricsMap = [:]
+
+    //checkout pipeline code
+    checkout scm
+
+    //determine branch name
+    sh "/usr/local/git_194/bin/git describe --all > GIT_BRANCH"
+    sh "cat GIT_BRANCH"
+    String[] data = readFile('GIT_BRANCH').split("\r?\n")
+
+    //load ecid shared library and put in map object
+    def libLoader = load 'src/com/freddiemac/a22497/sfta/pipeline/SharedLibLoader.groovy'
+    libMap = libLoader.initialize()
+    libMap.pipelineLogger.logMessage(libMap.loglevel_DEBUG, "SFTA pipeline job started...")
+
+    //does metadata file exist
+    def isBuildMetadataFileExists = fileExists "metadata/${metadataFileName}"
+    if (!isBuildMetadataFileExists) {
+      error "The metadata/" + metadataFileName + ".json build metadata file does not exist in the repository"
+      libMap.pipelineLogger.logMessage(libMap.loglevel_ERROR, "The metadata/" + metadataFileName + ".json build metadata file does not exist in the repository")
+    } else {
+      pipelineBuildMetadataFilename = "metadata/${metadataFileName}"
+      pipelineBranchName = data[0]
+      auditMap.put("BranchName", data[0])
+    }
+
+    //load jenkins environment config
+    def jenkinsEnv = load 'src/com/freddiemac/a22497/sfta/pipeline/JenkinsEnvironment.groovy'
+    envMap = jenkinsEnv.loadConfiguration()
+    if (envMap == null || envMap.type == null) {
+      echo """************************************************************
+      Step: Build Failure
+      No environment specific configurations are pre defined in "environment_config.json" for jenkins_url "${env.JENKINS_URL}".
+      ************************************************************"""
+      libMap.pipelineLogger.logMessage(libMap.loglevel_ERROR, "No environment specific configurations are pre defined in environment_config.json for jenkins_url ${env.JENKINS_URL}")
+      return
+    }
+
+    //creating servicenow upload folder to keep all the files and upload to Service Now at the end of execution
+    sh "mkdir ${env.BUILD_NUMBER}_ServiceNowUploads"
+    sh "echo 'This Folder has all the required files' > ${workspace}/${env.BUILD_NUMBER}.txt"
+    sh "cp ${workspace}/${env.BUILD_NUMBER}.txt ${env.BUILD_NUMBER}_ServiceNowUploads"
+    stash includes: "**/${env.BUILD_NUMBER}_ServiceNowUploads/", name: 'serviceNowUploads'
+
+
+    def loadPipelineMetadata
+    def artifactUtility
+    def pipelineStage
+    def utilFunctions
+    def emailNotification
+    def deploy
+    def build
+    def gitUtility
+    def gitUpdateUtility
+    def serviceNowUtility
+    def auditMetadataUtility
+    def scanUtility
+    def integrationTestUtility
+    def buildMetrics
+
+    def pipeline = load('src/com/freddiemac/a22497/sfta/pipeline/Pipeline.groovy')
+    pipeline.execute()
+
+  }
+
+}
