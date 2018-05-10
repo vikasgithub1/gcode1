@@ -1,0 +1,7 @@
+deploy_path: /fmac/dev/fin/phxSFTADEVCache
+deploy_domain: tomcat-phxSFTADEVCacheApp
+catalina_base: /www/approot/phxSFTADEVCache
+tomcat_instance: phxSFTADEVCache
+app_artifact_dir: deploy
+app_cfg_dir: cfg
+pkg_link_appender: package
