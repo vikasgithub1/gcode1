@@ -1,0 +1,182 @@
+{
+    "testrepos": {
+        "sourceDir": "test_sfta",
+        "repoName": "ssh://ectmcmg2@gitsvr.fhlmc.com:29418/sfta_validation_a22497",
+        "branchOrTagname": "release/1.0.0_1"
+    },
+    "servicenow": {
+        "summary": "SFTA Release",
+        "changeGroup": "F&C Systems Integration",
+        "createTicketIndicator": false,
+        "lineOfSupport": "Enterprise BTO",
+        "projectType": "Application",
+        "prodTicketID": "",
+        "ticketType": "ChangeRequest",
+        "type": "Routine",
+        "operationalSubCategory": "Baseline",
+        "changeCoordinator": "Prashanthi Kandula",
+        "scheduledStartDateAndTime": "2018-12-29 21:00:00",
+        "scheduledEndDateAndTime": "2018-12-30 21:00:00",
+        "environment": "Production",
+        "operationalCategory": "Add",
+        "affectedCI": "A22497 Phoenix Single Family Transaction Accounting (SFTA)",
+        "methodology": "Routine",
+        "prodTicketNum": "CHG0158315"
+    },
+    "environments": [
+        {
+            "stage": "dev",
+            "targets": [
+                {
+                    "executeTests": false,
+                    "approval": false,
+                    "sudo": false,
+                    "env": "dev"
+                }
+            ]
+        },
+        {
+            "stage": "sit",
+            "targets": [
+                {
+                    "executeTests": true,
+                    "approval": true,
+                    "sudo": false,
+                    "env": "sit"
+                }
+            ]
+        },
+        {
+            "stage": "uat",
+            "targets": [
+                {
+                    "executeTests": false,
+                    "approval": true,
+                    "sudo": true,
+                    "env": "uat"
+                }
+            ]
+        }
+    ],
+    "build": {
+        "repos": [
+            {
+                "rollback": {
+                    "toPrevVersion": false
+                },
+                "sourceDir": "gui",
+                "buildFlag": true,
+                "role": "ui",
+                "artifactVersion": "",
+                "repoName": "ssh://gitsvr.fhlmc.com:29418/phx_sfta_gui_a22497",
+                "branchOrTagname": "feature/rel1.0.0_IRCI",
+                "group": "ui-server1"
+            },
+            {
+                "rollback": {
+                    "toPrevVersion": false
+                },
+                "sourceDir": "orchestrator",
+                "buildFlag": true,
+                "role": "ui",
+                "artifactVersion": "",
+                "repoName": "ssh://gitsvr.fhlmc.com:29418/phx_sfta_orchestrator_a22497",
+                "branchOrTagname": "feature/rel1.0.0_IRCI",
+                "group": "ui-server2"
+            },
+            {
+                "rollback": {
+                    "toPrevVersion": false
+                },
+                "sourceDir": "report",
+                "buildFlag": true,
+                "role": "ui",
+                "artifactVersion": "",
+                "repoName": "ssh://gitsvr.fhlmc.com:29418/phx_sfta_report_a22497",
+                "branchOrTagname": "feature/rel1.0.0_IRCI",
+                "group": "ui-server2"
+            },
+            {
+                "rollback": {
+                    "toPrevVersion": false
+                },
+                "sourceDir": "service",
+                "buildFlag": true,
+                "role": "ui",
+                "artifactVersion": "",
+                "repoName": "ssh://gitsvr.fhlmc.com:29418/phx_shared_a22497",
+                "branchOrTagname": "feature/rel1.0.0_IRCI",
+                "group": "ui-server3"
+            },
+            {
+                "rollback": {
+                    "toPrevVersion": false
+                },
+                "sourceDir": "cache",
+                "buildFlag": true,
+                "role": "cache",
+                "artifactVersion": "",
+                "repoName": "ssh://gitsvr.fhlmc.com:29418/phx_cache_a22497",
+                "branchOrTagname": "feature/rel1.0.0_IRCI",
+                "group": "cache"
+            },
+            {
+                "rollback": {
+                    "toPrevVersion": false
+                },
+                "sourceDir": "process",
+                "buildFlag": true,
+                "role": "process",
+                "artifactVersion": "",
+                "repoName": "ssh://gitsvr.fhlmc.com:29418/phx_sfta_process_a22497",
+                "branchOrTagname": "feature/rel1.0.0_IRCI",
+                "group": "process"
+            }
+        ],
+        "x_props": {
+            
+        }
+    },
+    "scans": [
+        {
+            "projectKey": "SFTA_SONAR_REPORT_NTAD",
+            "type": "sonar",
+            "projectName": "A22497_SFTA_SONAR_NTAD",
+            "execute": false
+        },
+        {
+            "type": "fortify",
+            "execute": false
+        }
+    ],
+    "releaseName": "SFTA",
+    "releaseVersion": "1.0.3",
+    "timeouts": {
+        "uatApproval": {
+            "unit": "HOURS",
+            "approverGroup": "Advantage_Integration",
+            "time": "4"
+        },
+        "devApproval": {
+            "unit": "HOURS",
+            "approverGroup": "\"\"",
+            "time": "4"
+        },
+        "sitApproval": {
+            "unit": "HOURS",
+            "approverGroup": "phx_test_approvers",
+            "time": "4"
+        },
+        "artifactPromotionApproval": {
+            "unit": "HOURS",
+            "approverGroup": "Advantage_Integration",
+            "time": "4"
+        }
+    },
+    "notifications": {
+        "uatEmailList": "phoenix_integration@freddiemac.com",
+        "defaultEmailList": "phoenix_integration@freddiemac.com",
+        "devEmailList": "prashanthi_kandula1@freddiemac.com,vikas_patel@freddiemac.com,jorge_donado@freddiemac.com,helen_she@freddiemac.com,veena_kulkarni@freddiemac.com,murali_krishna@freddiemac.com,chandrika_pasham@freddiemac.com,luke_schmader@freddiemac.com,ramesh_kasarla@freddiemac.com,yi_xin@freddiemac.com, chandrika_pasham@freddiemac.com,gilberto_aponte-prats@freddiemac.com,premnath_bagahiagari@freddiemac.com",
+        "sitEmailList": "PHOENIX_TestLeads@freddiemac.com,prashanthi_kandula1@freddiemac.com,vikas_patel@freddiemac.com"
+    }
+}
