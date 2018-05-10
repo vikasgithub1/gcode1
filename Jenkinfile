@@ -35,7 +35,7 @@ node("NEW-CD") {
     } else {
       pipelineBuildMetadataFilename = "metadata/${metadataFileName}"
       pipelineBranchName = data[0]
-      auditMap.put("BranchName", data[0])
+      auditMap.put("BranchName", data[0])     
     }
 
     //load jenkins environment config
