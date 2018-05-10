@@ -1,0 +1,33 @@
+- hosts: all
+  any_errors_fatal: true
+  remote_user: '{{ bounce_user }}'
+
+  tasks:
+  - debug: msg="Host...{{ansible_hostname }}..Bounce User..{{ bounce_user }}"
+
+  - name: stop app tomcat
+    shell: "{{catalina_base}}/bin/shutdown.sh"
+    when: (app is defined and app != "process") and (inventory_hostname in groups[app_group])
+    ignore_errors: true
+
+  - name: stop app tomcat
+    shell: "{{item}}/bin/shutdown.sh"
+    with_items:
+      - "{{catalina_base1}}"
+      - "{{catalina_base2}}"
+    when: (app is defined and app == "process") and (inventory_hostname in groups[app_group])
+    ignore_errors: true
+
+  - pause:
+      minutes: 1
+
+  - name: start app tomcat
+    shell: "nohup {{catalina_base}}/bin/startup.sh &"
+    when: (app is defined and app != "process") and (inventory_hostname in groups[app_group])
+
+  - name: start app tomcat
+    shell: "nohup {{item}}/bin/startup.sh &"
+    with_items:
+      - "{{catalina_base1}}"
+      - "{{catalina_base2}}"
+    when: (app is defined and app == "process") and (inventory_hostname in groups[app_group])
