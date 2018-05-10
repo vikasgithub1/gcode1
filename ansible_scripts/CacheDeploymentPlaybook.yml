@@ -1,0 +1,103 @@
+- hosts: cache
+  any_errors_fatal: true
+  remote_user: '{{ deploy_user }}'
+  vars:
+    - hostname_lower: "{{inventory_hostname|lower}}"
+    - emptyOut: {"stdout_lines": []}
+    - ts: '{{ansible_date_time.month}}{{ansible_date_time.day}}{{ansible_date_time.year}}.{{ansible_date_time.hour}}{{ansible_date_time.minute}}{{ansible_date_time.second}}'
+
+  environment:
+    JAVA_HOME: "{{JAVA_HOME}}"
+    M2_HOME: "{{M2_HOME}}"
+
+  tasks:
+
+  - debug: msg="{{app}} version...{{version}}"
+    when: app is defined
+
+  - name: Token replacement for cache apps
+    command: '{{M2_HOME}}/bin/mvn clean install -f ../sfta_{{app}}/{{app}}/linux/pom.xml -Dsfta.{{app}}.package.version={{version}} -Dsfta.env={{stage}} -Dproject.build.directory=target'
+    when: app is defined
+    delegate_to: localhost
+
+  - name: Checking if any old directories with same release version
+    stat: path={{deploy_path}}/{{deploy_domain}}/{{app}}/{{version}}
+    register: st
+    when: app is defined
+
+  - name: Moving old directories with same release version if any
+    command: mv "{{deploy_path}}/{{deploy_domain}}/{{app}}/{{version}}" "{{deploy_path}}/{{deploy_domain}}/{{app}}/{{version}}-{{ts}}"
+    when: st.stat.exists == true and app is defined
+
+  # create new versioned app deploy directory
+  - file:
+      path: "{{deploy_path}}/{{deploy_domain}}/{{app}}/{{version}}"
+      state: directory
+      mode: 0755
+    when: app is defined
+
+  # copy new app build artifacts into newly created deploy directory
+  - copy:
+      src: "../sfta_{{app}}/{{app}}/linux/target/phx-sfta-{{app}}-{{version}}-{{stage}}.tar"
+      dest: "{{deploy_path}}/{{deploy_domain}}/{{app}}/{{version}}"
+      owner: "{{deploy_user}}"
+      group: "{{deploy_group}}"
+      mode: 0755
+    when: app is defined
+
+  - name: extract contents from tar file into app folder
+    unarchive:
+      src: "{{deploy_path}}/{{deploy_domain}}/{{app}}/{{version}}/phx-sfta-{{app}}-{{version}}-{{stage}}.tar"
+      dest: "{{deploy_path}}/{{deploy_domain}}/{{app}}/{{version}}"
+      remote_src: yes
+    when: app is defined
+
+  # delete tar file after extraction in app deployment folder
+  - file:
+      path: "{{deploy_path}}/{{deploy_domain}}/{{app}}/{{version}}/phx-sfta-{{app}}-{{version}}-{{stage}}.tar"
+      state: absent
+    when: app is defined
+
+  - name: capture existing app deploy version
+    stat: path="{{deploy_path}}/{{deploy_domain}}/{{app}}-{{pkg_link_appender}}"
+    register: current_app_version
+    when: app is defined
+
+  - name: create app rollback file
+    template:
+      src: "templates/RollbackAppTemplate.j2"
+      dest: "{{deploy_path}}/{{deploy_domain}}/{{app}}/{{version}}/.rollback"
+    when: app is defined
+
+  # create/update app package link to new app deployment folder
+  - file:
+      src: "{{deploy_path}}/{{deploy_domain}}/{{app}}/{{version}}"
+      dest: "{{deploy_path}}/{{deploy_domain}}/{{app}}-{{pkg_link_appender}}"
+      state: link
+    when: app is defined
+
+  # create one time deploy and cfg links to new app deployment folder
+  - file:
+      src: "{{deploy_path}}/{{deploy_domain}}/{{app}}-{{pkg_link_appender}}/{{item.src}}"
+      dest: "{{deploy_path}}/{{deploy_domain}}/{{item.dest}}"
+      state: link
+    with_items:
+      - { src: "{{app_artifact_dir}}", dest: "{{app_artifact_dir}}" }
+      - { src: "{{app_cfg_dir}}", dest: "{{app_cfg_dir}}" }
+    when: app is defined
+
+  - name: Capture older deployed versions for deletion
+    shell: "ls -t | tail -n +6"
+    args:
+      chdir: "{{deploy_path}}/{{deploy_domain}}/{{app}}"
+    register: del_older_deploy
+    when: app is defined
+
+  - debug: msg="Older deployed directories marked for delete..{{del_older_deploy.stdout_lines }}"
+
+  - name: Delete older deployed versions other than latest 5
+    file:
+      path: "{{deploy_path}}/{{deploy_domain}}/{{app}}/{{item}}"
+      state: absent
+    with_items: "{{del_older_deploy.stdout_lines }}"
+    when: del_older_deploy.stdout_lines > 0
