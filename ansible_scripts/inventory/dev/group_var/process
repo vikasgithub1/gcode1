@@ -1,0 +1,11 @@
+deploy_path1: /fmac/dev/fin/phxSFTADEV
+deploy_domain1: tomcat-phxSFTADEVApp
+catalina_base1: /www/approot/phxSFTADEV
+tomcat_instance1: phxSFTADEV
+deploy_path2: /fmac/dev/cor/TCphxSFTA1_Dev6
+deploy_domain2: tomcat-TCphxSFTA1_Dev6App
+catalina_base2: /www/approot/TCphxSFTA1_Dev6
+tomcat_instance2: TCphxSFTA1_Dev6
+app_artifact_dir: deploy
+app_cfg_dir: cfg
+pkg_link_appender: package
